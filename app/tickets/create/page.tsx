@@ -81,16 +81,16 @@ export default function CreateTicketPage() {
     }
   }
 
+  const backHandler = () => window.history.back()
+
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="mx-auto space-y-6 border-2">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Link href="/tickets">
-            <Button variant="outline" size="icon">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button variant="outline" size="icon" onClick={backHandler}>
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
           <div>
             <h1 className="text-3xl font-bold text-primary">Create New Ticket</h1>
             <p className="text-muted-foreground">Add a new support ticket to the system</p>
