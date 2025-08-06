@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { Menu, Home, Ticket, Users, Building2, LogOut, UserPlus, Search } from "lucide-react"
+import { Menu, Home, Ticket, Users, Building2, LogOut, UserPlus, Search, LayoutDashboard } from 'lucide-react'
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -31,6 +31,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           { name: "Departments", href: "/departments", icon: Building2 },
           { name: "Users", href: "/users", icon: Users },
           { name: "Sub-admins", href: "/sub-admins", icon: UserPlus },
+        ]
+      : []),
+    ...(user?.role === "user"
+      ? [
+          { name: "My Dashboard", href: "/member-dashboard", icon: LayoutDashboard },
         ]
       : []),
   ]
@@ -64,8 +69,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <p className="font-medium truncate">{user?.name}</p>
             <div className="flex items-center gap-2">
               <Badge variant="secondary" className="text-xs">
-                {user?.role}
+                {user?.role === "admin" ? "Admin" : user?.role === "sub-admin" ? "Sub-Admin" : "Member"}
               </Badge>
+              {user?.department && (
+                <Badge variant="outline" className="text-xs">
+                  {user.department}
+                </Badge>
+              )}
             </div>
           </div>
         </div>

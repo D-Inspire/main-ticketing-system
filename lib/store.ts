@@ -5,7 +5,8 @@ export interface User {
   id: string
   name: string
   email: string
-  role: "admin" | "sub-admin"
+  password: string
+  role: "admin" | "sub-admin" | "user"
   department?: string
 }
 
@@ -73,60 +74,152 @@ interface AppState {
   updateUser: (id: string, updates: Partial<User>) => void
   deleteUser: (id: string) => void
   assignUserToDepartment: (userId: string, departmentId: string) => void
+
+  // Reset function
+  resetStore: () => void
 }
+
+// Initial data
+const initialUsers: User[] = [
+  {
+    id: "1",
+    name: "Admin User",
+    email: "admin@company.com",
+    password: "password",
+    role: "admin",
+  },
+  {
+    id: "2",
+    name: "Sub Admin",
+    email: "subadmin@company.com",
+    password: "password",
+    role: "sub-admin",
+    department: "Technical Support",
+  },
+  {
+    id: "3",
+    name: "John Doe",
+    email: "john@company.com",
+    password: "password",
+    role: "user",
+    department: "Technical Support",
+  },
+  {
+    id: "4",
+    name: "Jane Smith",
+    email: "jane@company.com",
+    password: "password",
+    role: "user",
+    department: "Customer Service",
+  },
+]
+
+const initialDepartments: Department[] = [
+  {
+    id: "1",
+    name: "Technical Support",
+    users: [],
+  },
+  {
+    id: "2",
+    name: "Customer Service",
+    users: [],
+  },
+  {
+    id: "3",
+    name: "Sales",
+    users: [],
+  },
+]
+
+const initialTickets: Ticket[] = [
+  {
+    id: "1",
+    name: "John Customer",
+    phone: "+1234567890",
+    email: "john.customer@email.com",
+    companySection: "Sales",
+    source: "Email",
+    dateFiled: "2024-01-15T10:30:00Z",
+    subject: "Login Issues",
+    message: "I'm having trouble logging into my account. The password reset doesn't seem to work.",
+    level: "high",
+    status: "new",
+    department: "Technical Support",
+    autoEmail: true,
+    createdBy: "1",
+    updatedAt: "2024-01-15T10:30:00Z",
+    logTrail: [
+      {
+        id: "1",
+        action: "Ticket Created",
+        user: "Admin User",
+        timestamp: "2024-01-15T10:30:00Z",
+      },
+    ],
+  },
+  {
+    id: "2",
+    name: "Jane Smith",
+    phone: "+1987654321",
+    email: "jane.smith@email.com",
+    companySection: "Support",
+    source: "Phone",
+    dateFiled: "2024-01-16T14:20:00Z",
+    subject: "Billing Question",
+    message: "I have a question about my recent invoice. There seems to be an extra charge.",
+    level: "medium",
+    status: "in-progress",
+    department: "Customer Service",
+    autoEmail: false,
+    createdBy: "1",
+    updatedAt: "2024-01-16T14:20:00Z",
+    logTrail: [
+      {
+        id: "1",
+        action: "Ticket Created",
+        user: "Admin User",
+        timestamp: "2024-01-16T14:20:00Z",
+      },
+    ],
+  },
+]
 
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
       user: null,
-      tickets: [],
-      departments: [
-        {
-          id: "1",
-          name: "Technical Support",
-          users: [],
-        },
-        {
-          id: "2",
-          name: "Customer Service",
-          users: [],
-        },
-        {
-          id: "3",
-          name: "Sales",
-          users: [],
-        },
-      ],
-      users: [
-        {
-          id: "1",
-          name: "Admin User",
-          email: "admin@company.com",
-          role: "admin",
-        },
-        {
-          id: "2",
-          name: "Sub Admin",
-          email: "subadmin@company.com",
-          role: "sub-admin",
-          department: "1",
-        },
-      ],
+      tickets: initialTickets,
+      departments: initialDepartments,
+      users: initialUsers,
       companySections: ["Sales", "Marketing", "Support", "Development", "HR"],
       sources: ["Tawk.to", "Walk-in", "Phone", "Email", "Website Form"],
 
       login: async (email: string, password: string) => {
-        // Mock authentication
-        const users = get().users
-        const user = users.find((u) => u.email === email)
-        if (user && password === "password") {
+        console.log("Login attempt:", { email, password })
+        
+        // Get current users from store
+        const currentUsers = get().users
+        console.log("Available users:", currentUsers)
+        
+        // Find user with matching email and password
+        const user = currentUsers.find((u) => {
+          console.log("Checking user:", { userEmail: u.email, userPassword: u.password, inputEmail: email, inputPassword: password })
+          return u.email === email && u.password === password
+        })
+        
+        console.log("Found user:", user)
+        
+        if (user) {
           set({ user })
           return true
         }
         return false
       },
 
-      logout: () => set({ user: null }),
+      logout: () => {
+        set({ user: null })
+      },
 
       setUser: (user) => set({ user }),
 
@@ -257,9 +350,19 @@ export const useStore = create<AppState>()(
           users: state.users.map((user) => (user.id === userId ? { ...user, department: departmentId } : user)),
         }))
       },
+
+      resetStore: () => {
+        set({
+          user: null,
+          tickets: initialTickets,
+          departments: initialDepartments,
+          users: initialUsers,
+        })
+      },
     }),
     {
       name: "ticketing-system-storage",
+      version: 1, // Increment version to force reset
     },
   ),
 )
