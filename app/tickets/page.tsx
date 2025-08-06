@@ -8,19 +8,46 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
-import { Plus, Search, Filter, Eye, Edit, Clock, User } from "lucide-react"
+import { Plus, Search, Filter, Eye, Edit, Clock, User, CheckCircle, RotateCcw } from 'lucide-react'
 import Link from "next/link"
 
 export default function TicketsPage() {
-  const { tickets, departments, users } = useStore()
+  const { tickets, departments, users, user, updateTicket, addLogEntry } = useStore()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [levelFilter, setLevelFilter] = useState("all")
+  const [selectedTicket, setSelectedTicket] = useState<any>(null)
+  const [isResolveOpen, setIsResolveOpen] = useState(false)
+  const [isUnresolveOpen, setIsUnresolveOpen] = useState(false)
+  const [resolution, setResolution] = useState("")
+  const [unresolveReason, setUnresolveReason] = useState("")
 
   const filteredTickets = useMemo(() => {
-    return tickets.filter((ticket) => {
+    let ticketsToShow = tickets
+
+    // Filter by user role
+    if (user?.role === "sub-admin") {
+      ticketsToShow = tickets.filter((ticket) => ticket.department === user.department)
+    } else if (user?.role === "user") {
+      ticketsToShow = tickets.filter((ticket) => ticket.department === user.department)
+    }
+
+    return ticketsToShow.filter((ticket) => {
       const matchesSearch =
         ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
         ticket.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,7 +59,7 @@ export default function TicketsPage() {
 
       return matchesSearch && matchesStatus && matchesDepartment && matchesLevel
     })
-  }, [tickets, searchTerm, statusFilter, departmentFilter, levelFilter])
+  }, [tickets, searchTerm, statusFilter, departmentFilter, levelFilter, user])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -64,6 +91,78 @@ export default function TicketsPage() {
     }
   }
 
+  const handleResolveTicket = () => {
+    if (!selectedTicket || !resolution.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a resolution description",
+        variant: "destructive",
+      })
+      return
+    }
+
+    updateTicket(selectedTicket.id, {
+      status: "completed",
+      recommendation: resolution.trim(),
+    })
+
+    addLogEntry(selectedTicket.id, {
+      action: "Ticket Resolved",
+      user: user?.name || "Unknown",
+      details: `Resolution: ${resolution.trim()}`,
+    })
+
+    setResolution("")
+    setIsResolveOpen(false)
+    setSelectedTicket(null)
+    toast({
+      title: "Ticket resolved",
+      description: "The ticket has been marked as completed",
+    })
+  }
+
+  const handleUnresolveTicket = () => {
+    if (!selectedTicket || !unresolveReason.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide a reason for unresolving",
+        variant: "destructive",
+      })
+      return
+    }
+
+    updateTicket(selectedTicket.id, {
+      status: "in-progress",
+      recommendation: undefined,
+    })
+
+    addLogEntry(selectedTicket.id, {
+      action: "Ticket Unresolved",
+      user: user?.name || "Unknown",
+      details: `Reason: ${unresolveReason.trim()}`,
+    })
+
+    setUnresolveReason("")
+    setIsUnresolveOpen(false)
+    setSelectedTicket(null)
+    toast({
+      title: "Ticket unresolved",
+      description: "The ticket has been reopened for further work",
+    })
+  }
+
+  const openResolveDialog = (ticket: any) => {
+    setSelectedTicket(ticket)
+    setResolution("")
+    setIsResolveOpen(true)
+  }
+
+  const openUnresolveDialog = (ticket: any) => {
+    setSelectedTicket(ticket)
+    setUnresolveReason("")
+    setIsUnresolveOpen(true)
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -73,12 +172,14 @@ export default function TicketsPage() {
             <h1 className="text-3xl font-bold text-primary">Tickets</h1>
             <p className="text-muted-foreground">Manage and track all support tickets</p>
           </div>
-          <Link href="/tickets/create">
-            <Button className="bg-primary hover:bg-primary/90 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Ticket
-            </Button>
-          </Link>
+          {(user?.role === "admin" || user?.role === "sub-admin") && (
+            <Link href="/tickets/create">
+              <Button className="bg-primary hover:bg-primary/90 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Create Ticket
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Filters */}
@@ -114,19 +215,21 @@ export default function TicketsPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  {departments.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.name}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {user?.role === "admin" && (
+                <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.name}>
+                        {dept.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
 
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger>
@@ -207,21 +310,49 @@ export default function TicketsPage() {
                             <span>{ticket.source}</span>
                           </div>
                         </div>
+
+                        {ticket.recommendation && (
+                          <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-sm font-medium text-green-800 mb-1">Resolution:</p>
+                            <p className="text-sm text-green-700">{ticket.recommendation}</p>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Link href={`/tickets/${ticket.id}`}>
                           <Button variant="outline" size="sm">
                             <Eye className="w-4 h-4 mr-2" />
                             View
                           </Button>
                         </Link>
-                        <Link href={`/tickets/${ticket.id}/edit`}>
-                          <Button variant="outline" size="sm">
-                            <Edit className="w-4 h-4 mr-2" />
-                            Edit
+                        {(user?.role === "admin" || user?.role === "sub-admin") && (
+                          <Link href={`/tickets/${ticket.id}/edit`}>
+                            <Button variant="outline" size="sm">
+                              <Edit className="w-4 h-4 mr-2" />
+                              Edit
+                            </Button>
+                          </Link>
+                        )}
+                        {ticket.status !== "completed" ? (
+                          <Button
+                            onClick={() => openResolveDialog(ticket)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            size="sm"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Resolve
                           </Button>
-                        </Link>
+                        ) : (
+                          <Button
+                            onClick={() => openUnresolveDialog(ticket)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Unresolve
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -239,6 +370,78 @@ export default function TicketsPage() {
             </p>
           </div>
         )}
+
+        {/* Resolve Ticket Dialog */}
+        <Dialog open={isResolveOpen} onOpenChange={setIsResolveOpen}>
+          <DialogContent className="bg-[#F9F9FA]">
+            <DialogHeader>
+              <DialogTitle>Resolve Ticket</DialogTitle>
+              <DialogDescription>
+                Provide a resolution for: {selectedTicket?.subject}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="resolution">Resolution Details</Label>
+                <Textarea
+                  id="resolution"
+                  value={resolution}
+                  onChange={(e) => setResolution(e.target.value)}
+                  placeholder="Describe how you resolved this ticket..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsResolveOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleResolveTicket}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Mark as Resolved
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Unresolve Ticket Dialog */}
+        <Dialog open={isUnresolveOpen} onOpenChange={setIsUnresolveOpen}>
+          <DialogContent className="bg-[#F9F9FA]">
+            <DialogHeader>
+              <DialogTitle>Unresolve Ticket</DialogTitle>
+              <DialogDescription>
+                Reopen ticket: {selectedTicket?.subject}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="unresolveReason">Reason for Unresolving</Label>
+                <Textarea
+                  id="unresolveReason"
+                  value={unresolveReason}
+                  onChange={(e) => setUnresolveReason(e.target.value)}
+                  placeholder="Explain why this ticket needs to be reopened..."
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsUnresolveOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUnresolveTicket}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reopen Ticket
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </DashboardLayout>
   )

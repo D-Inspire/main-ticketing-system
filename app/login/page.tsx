@@ -1,23 +1,24 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import { motion } from "framer-motion"
-import { Ticket, Shield, RotateCcw } from 'lucide-react'
+import { Ticket, Eye, EyeOff, RefreshCw } from 'lucide-react'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
   const { login, resetStore } = useStore()
   const { toast } = useToast()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,19 +29,20 @@ export default function LoginPage() {
       if (success) {
         toast({
           title: "Login successful",
-          description: "Welcome to the ticketing system",
+          description: "Welcome to the ticketing system!",
         })
+        router.push("/dashboard")
       } else {
         toast({
           title: "Login failed",
-          description: "Invalid email or password",
+          description: "Invalid email or password. Please try again.",
           variant: "destructive",
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "An error occurred during login",
+        title: "Login error",
+        description: "An error occurred during login. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -51,92 +53,132 @@ export default function LoginPage() {
   const handleReset = () => {
     resetStore()
     toast({
-      title: "Store Reset",
-      description: "All data has been reset to defaults",
+      title: "Store reset",
+      description: "All data has been reset to defaults. Try logging in again.",
     })
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
-      >
-        <Card className="shadow-2xl border-0 bg-[#F9F9FA]">
-          <CardHeader className="text-center pb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-              className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full flex items-center justify-center mb-4"
-            >
-              <Ticket className="w-8 h-8 text-white" />
-            </motion.div>
-            <CardTitle className="text-2xl font-bold text-primary">Ticketing System</CardTitle>
-            <CardDescription className="text-gray-600">Sign in to access your dashboard</CardDescription>
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-primary/10 to-background flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4">
+            <Ticket className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-primary">Ticketing System</h1>
+          <p className="text-muted-foreground">Sign in to your account</p>
+        </div>
+
+        {/* Login Form */}
+        <Card className="bg-[#F9F9FA] border-0 shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access your dashboard
+            </CardDescription>
           </CardHeader>
-          <CardContent className="bg-[#F9F9FA]">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <CardContent className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@company.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="h-12 bg-white border-gray-200 focus:border-primary focus:ring-primary"
+                  className="bg-white"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-12 bg-white border-gray-200 focus:border-primary focus:ring-primary"
-                />
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
               <Button
                 type="submit"
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-medium shadow-lg"
+                className="w-full bg-primary hover:bg-primary/90 text-white"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
 
-            <div className="mt-6">
+            {/* Reset Button */}
+            <div className="pt-4 border-t">
               <Button
-                onClick={handleReset}
+                type="button"
                 variant="outline"
-                className="w-full h-10 border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="w-full"
+                onClick={handleReset}
               >
-                <RotateCcw className="w-4 h-4 mr-2" />
+                <RefreshCw className="w-4 h-4 mr-2" />
                 Reset Store Data
               </Button>
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="mt-6 p-4 bg-white/60 rounded-lg border border-gray-200">
-              <div className="flex items-center gap-2 mb-2">
-                <Shield className="w-4 h-4 text-primary" />
-                <span className="font-medium text-sm text-gray-700">Demo Credentials</span>
+        {/* Demo Credentials */}
+        <Card className="bg-[#F9F9FA] border-0">
+          <CardHeader>
+            <CardTitle className="text-lg">Demo Credentials</CardTitle>
+            <CardDescription>Use these accounts to test the system</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3">
+              <div className="p-3 bg-white rounded-lg border">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-sm">Admin Account</span>
+                  <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">ADMIN</span>
+                </div>
+                <p className="text-sm text-muted-foreground">admin@company.com</p>
+                <p className="text-sm text-muted-foreground">password</p>
               </div>
-              <div className="text-xs text-gray-600 space-y-1">
-                <div><strong>Admin:</strong> admin@company.com / password</div>
-                <div><strong>Sub-admin:</strong> subadmin@company.com / password</div>
-                <div><strong>Member:</strong> john@company.com / password</div>
+              <div className="p-3 bg-white rounded-lg border">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-sm">Sub-Admin Account</span>
+                  <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">SUB-ADMIN</span>
+                </div>
+                <p className="text-sm text-muted-foreground">subadmin@company.com</p>
+                <p className="text-sm text-muted-foreground">password</p>
+              </div>
+              <div className="p-3 bg-white rounded-lg border">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-sm">Member Account</span>
+                  <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">MEMBER</span>
+                </div>
+                <p className="text-sm text-muted-foreground">john@company.com</p>
+                <p className="text-sm text-muted-foreground">password</p>
               </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
     </div>
   )
 }

@@ -29,8 +29,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     ...(user?.role === "admin"
       ? [
           { name: "Departments", href: "/departments", icon: Building2 },
-          { name: "Users", href: "/users", icon: Users },
           { name: "Sub-admins", href: "/sub-admins", icon: UserPlus },
+        ]
+      : []),
+    ...(user?.role === "sub-admin"
+      ? [
+          { name: "Departments", href: "/departments", icon: Building2 },
+          { name: "Users", href: "/users", icon: Users },
         ]
       : []),
     ...(user?.role === "user"
