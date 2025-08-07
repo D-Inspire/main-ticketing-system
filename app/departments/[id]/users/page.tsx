@@ -15,6 +15,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import type { User } from "@/lib/store"
+import { DashboardLayout } from "@/components/layout/dashboard-layout"
 
 export default function DepartmentUsersPage() {
   const params = useParams()
@@ -114,43 +115,202 @@ export default function DepartmentUsersPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/departments">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Departments
-          </Button>
-        </Link>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{department.name} Users</h1>
-          <p className="text-muted-foreground">
-            Manage users in the {department.name} department
-          </p>
-        </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
+    <DashboardLayout>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/departments">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Departments
             </Button>
-          </DialogTrigger>
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">{department.name} Users</h1>
+            <p className="text-muted-foreground">
+              Manage users in the {department.name} department
+            </p>
+          </div>
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#F9F9FA]">
+              <DialogHeader>
+                <DialogTitle>Add New User</DialogTitle>
+                <DialogDescription>
+                  Add a new member to the {department.name} department.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleCreate}>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Enter full name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      placeholder="Enter email address"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      placeholder="Enter password"
+                      required
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Add User</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Department Leader */}
+        {departmentLeader && (
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Crown className="h-5 w-5 text-yellow-600" />
+              Department Leader
+            </h2>
+            <Card className="border-yellow-200 bg-yellow-50/50">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={`/placeholder-user.jpg`} />
+                    <AvatarFallback>{departmentLeader.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium">{departmentLeader.name}</h3>
+                      <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                        Sub-Admin
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      {departmentLeader.email}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Department Members */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4">
+            Department Members ({regularUsers.length})
+          </h2>
+          
+          {regularUsers.length > 0 ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {regularUsers.map((member, index) => (
+                <motion.div
+                  key={member.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <Card className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={`/placeholder-user.jpg`} />
+                            <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate">{member.name}</h3>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
+                              <Mail className="h-3 w-3 flex-shrink-0" />
+                              {member.email}
+                            </p>
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              Member
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-1 ml-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(member)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(member)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 border-2 border-dashed border-muted rounded-lg">
+              <h3 className="text-lg font-medium mb-2">No Members Yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Add your first team member to get started.
+              </p>
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add First Member
+                  </Button>
+                </DialogTrigger>
+              </Dialog>
+            </div>
+          )}
+        </div>
+
+        {/* Edit User Dialog */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent className="bg-[#F9F9FA]">
             <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
+              <DialogTitle>Edit User</DialogTitle>
               <DialogDescription>
-                Add a new member to the {department.name} department.
+                Update user information.
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleUpdate}>
               <div className="grid gap-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="edit-name">Full Name</Label>
                   <Input
-                    id="name"
+                    id="edit-name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="Enter full name"
@@ -158,9 +318,9 @@ export default function DepartmentUsersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="edit-email">Email</Label>
                   <Input
-                    id="email"
+                    id="edit-email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -169,9 +329,9 @@ export default function DepartmentUsersPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="edit-password">Password</Label>
                   <Input
-                    id="password"
+                    id="edit-password"
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -181,169 +341,12 @@ export default function DepartmentUsersPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Add User</Button>
+                <Button type="submit">Update User</Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Department Leader */}
-      {departmentLeader && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Crown className="h-5 w-5 text-yellow-600" />
-            Department Leader
-          </h2>
-          <Card className="border-yellow-200 bg-yellow-50/50">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={`/placeholder-user.jpg`} />
-                  <AvatarFallback>{departmentLeader.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium">{departmentLeader.name}</h3>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      Sub-Admin
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    {departmentLeader.email}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Department Members */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4">
-          Department Members ({regularUsers.length})
-        </h2>
-        
-        {regularUsers.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {regularUsers.map((member, index) => (
-              <motion.div
-                key={member.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3 flex-1">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={`/placeholder-user.jpg`} />
-                          <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{member.name}</h3>
-                          <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
-                            <Mail className="h-3 w-3 flex-shrink-0" />
-                            {member.email}
-                          </p>
-                          <Badge variant="outline" className="mt-1 text-xs">
-                            Member
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex gap-1 ml-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(member)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(member)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 border-2 border-dashed border-muted rounded-lg">
-            <h3 className="text-lg font-medium mb-2">No Members Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Add your first team member to get started.
-            </p>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add First Member
-                </Button>
-              </DialogTrigger>
-            </Dialog>
-          </div>
-        )}
-      </div>
-
-      {/* Edit User Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="bg-[#F9F9FA]">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Update user information.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleUpdate}>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Full Name</Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter full name"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  placeholder="Enter email address"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-password">Password</Label>
-                <Input
-                  id="edit-password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit">Update User</Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+    </DashboardLayout>
   )
 }

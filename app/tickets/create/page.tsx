@@ -85,7 +85,7 @@ export default function CreateTicketPage() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto space-y-6 border-2">
+      <div className="mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="icon" onClick={backHandler}>
