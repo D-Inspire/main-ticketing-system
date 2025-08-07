@@ -234,7 +234,7 @@ export default function DepartmentUsersPage() {
           </h2>
           
           {regularUsers.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
               {regularUsers.map((member, index) => (
                 <motion.div
                   key={member.id}
@@ -250,7 +250,7 @@ export default function DepartmentUsersPage() {
                             <AvatarImage src={`/placeholder-user.jpg`} />
                             <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                           </Avatar>
-                          <div className="flex-1 min-w-0">
+                          <div className="flex-1 min-w-0 space-y-2">
                             <h3 className="font-medium truncate">{member.name}</h3>
                             <p className="text-sm text-muted-foreground flex items-center gap-1 truncate">
                               <Mail className="h-3 w-3 flex-shrink-0" />

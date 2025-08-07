@@ -58,7 +58,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Ticket className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h2 className="font-bold text-primary">Ticketing</h2>
+            <h2 className="font-bold text-primary">NanoTicket</h2>
             <p className="text-xs text-muted-foreground">System</p>
           </div>
         </div>
@@ -70,14 +70,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
             <span className="text-white font-medium">{user?.name.charAt(0)}</span>
           </div>
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 text">
             <p className="font-medium truncate">{user?.name}</p>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
+            <div className="flex justify-center flex-col gap-2">
+              <Badge variant="secondary" className="text-xs p-0">
                 {user?.role === "admin" ? "Admin" : user?.role === "sub-admin" ? "Sub-Admin" : "Member"}
               </Badge>
               {user?.department && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs w-fit">
                   {user.department}
                 </Badge>
               )}

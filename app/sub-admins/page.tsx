@@ -227,7 +227,7 @@ export default function SubAdminsPage() {
           </Dialog>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
           {subAdmins.map((subAdmin, index) => (
             <motion.div
               key={subAdmin.id}
@@ -238,50 +238,55 @@ export default function SubAdminsPage() {
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center gap-1 w-full">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={`/placeholder-user.jpg`} />
                         <AvatarFallback>{subAdmin.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="w-[calc(100%-48px)]">
                         <CardTitle className="text-lg flex items-center gap-2">
                           {subAdmin.name}
                           <Crown className="h-4 w-4 text-yellow-600" />
                         </CardTitle>
-                        <CardDescription className="flex items-center gap-1">
+                        <CardDescription className="flex items-center gap-1 w-full">
                           <Mail className="h-3 w-3" />
-                          {subAdmin.email}
+                          <p className="w-full overflow-hidden whitespace-nowrap text-ellipsis">
+                            {subAdmin.email}
+                          </p>
+                            
                         </CardDescription>
                       </div>
                     </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(subAdmin)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(subAdmin)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">
-                      {subAdmin.department || "No Department"}
-                    </span>
+                <CardContent className="flex justify-between items-center">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Building className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-medium">
+                        {subAdmin.department || "No Department"}
+                      </span>
+                    </div>
+                    <Badge variant="secondary" className="w-fit">
+                      Department Leader
+                    </Badge>
                   </div>
-                  <Badge variant="secondary" className="w-fit">
-                    Department Leader
-                  </Badge>
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(subAdmin)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(subAdmin)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
