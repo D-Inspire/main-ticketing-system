@@ -17,7 +17,7 @@ import type { User } from "@/lib/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 
 export default function SubAdminsPage() {
-  const { users, departments, user, addUser, updateUser, deleteUser } = useStore()
+  const { users, departments, user, createUser, updateUser, deleteUser } = useStore()
   const { toast } = useToast()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -37,7 +37,7 @@ export default function SubAdminsPage() {
     if (!formData.name.trim() || !formData.email.trim() || !formData.departmentId || !formData.password.trim()) return
 
     // Check if department already has a leader
-    const existingLeader = users.find(u => u.departmentId === formData.departmentId && u.role === "sub-admin")
+    const existingLeader = users.find(u => u.department === getDepartmentName(formData.departmentId) && u.role === "sub-admin")
     if (existingLeader) {
       toast({
         title: "Department already has a leader",
@@ -47,11 +47,11 @@ export default function SubAdminsPage() {
       return
     }
 
-    addUser({
+    createUser({
       name: formData.name,
       email: formData.email,
       role: "sub-admin",
-      departmentId: formData.departmentId,
+      department: getDepartmentName(formData.departmentId), // Store department name
       password: formData.password,
     })
 
@@ -69,7 +69,7 @@ export default function SubAdminsPage() {
     setFormData({
       name: subAdmin.name,
       email: subAdmin.email,
-      departmentId: subAdmin.departmentId || "",
+      departmentId: departments.find(d => d.name === subAdmin.department)?.id || "", // Convert name back to ID for form
       password: subAdmin.password || "",
     })
     setIsEditOpen(true)
@@ -81,7 +81,7 @@ export default function SubAdminsPage() {
 
     // Check if department already has a different leader
     const existingLeader = users.find(u => 
-      u.departmentId === formData.departmentId && 
+      u.department === getDepartmentName(formData.departmentId) && 
       u.role === "sub-admin" && 
       u.id !== editingUser.id
     )
@@ -97,7 +97,7 @@ export default function SubAdminsPage() {
     updateUser(editingUser.id, {
       name: formData.name,
       email: formData.email,
-      departmentId: formData.departmentId,
+      department: getDepartmentName(formData.departmentId), // Store department name
       password: formData.password,
     })
 
@@ -127,7 +127,8 @@ export default function SubAdminsPage() {
   const getAvailableDepartments = () => {
     const departmentsWithLeaders = users
       .filter(u => u.role === "sub-admin" && u.id !== editingUser?.id)
-      .map(u => u.departmentId)
+      .map(u => departments.find(d => d.name === u.department)?.id) // Get department ID from name
+      .filter(Boolean) as string[]
     
     return departments.filter(d => !departmentsWithLeaders.includes(d.id))
   }
@@ -136,9 +137,11 @@ export default function SubAdminsPage() {
 
   if (!canManageSubAdmins) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">You don't have permission to view this page.</p>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">You don't have permission to view this page.</p>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -273,7 +276,7 @@ export default function SubAdminsPage() {
                   <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">
-                      {getDepartmentName(subAdmin.departmentId || "")}
+                      {subAdmin.department || "No Department"}
                     </span>
                   </div>
                   <Badge variant="secondary" className="w-fit">

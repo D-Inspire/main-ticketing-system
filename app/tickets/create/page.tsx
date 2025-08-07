@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Import useEffect
 import { useStore } from "@/lib/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
@@ -14,12 +14,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
-import { ArrowLeft, Save, Mail } from "lucide-react"
+import { ArrowLeft, Save, Mail } from 'lucide-react'
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
 export default function CreateTicketPage() {
-  const { createTicket, departments, users, companySections, sources } = useStore()
+  const { createTicket, departments, users, companySections, sources, user } = useStore()
   const { toast } = useToast()
   const router = useRouter()
 
@@ -35,14 +35,27 @@ export default function CreateTicketPage() {
     recommendation: "",
     level: "medium" as "urgent" | "high" | "medium" | "casual",
     status: "new" as "new" | "in-progress" | "paused" | "completed",
-    department: "",
+    department: user?.role === "sub-admin" ? user.department || "" : "", // Auto-set department for sub-admins
     assignedUser: "",
     autoEmail: true,
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const departmentUsers = users.filter((user) => user.department === formData.department)
+  // Filter users based on the selected department (or sub-admin's department)
+  const departmentUsers = users.filter((u) => u.department === formData.department && u.role === "user")
+
+  // Effect to update department if user role changes or department is pre-set
+  useEffect(() => {
+    if (user?.role === "sub-admin" && user.department && formData.department !== user.department) {
+      setFormData((prev) => ({
+        ...prev,
+        department: user.department,
+        assignedUser: "", // Reset assigned user if department changes
+      }))
+    }
+  }, [user, formData.department])
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -82,6 +95,8 @@ export default function CreateTicketPage() {
   }
 
   const backHandler = () => window.history.back()
+
+  const isSubAdmin = user?.role === "sub-admin"
 
   return (
     <DashboardLayout>
@@ -226,40 +241,60 @@ export default function CreateTicketPage() {
                     <CardDescription>Assign ticket to department and user</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="department">Department *</Label>
-                      <Select
-                        value={formData.department}
-                        onValueChange={(value) => handleInputChange("department", value)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {departments.map((dept) => (
-                            <SelectItem key={dept.id} value={dept.name}>
-                              {dept.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {/* Hide department select for sub-admins */}
+                    {!isSubAdmin && (
+                      <div className="space-y-2">
+                        <Label htmlFor="department">Department *</Label>
+                        <Select
+                          value={formData.department}
+                          onValueChange={(value) => handleInputChange("department", value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departments.map((dept) => (
+                              <SelectItem key={dept.id} value={dept.name}>
+                                {dept.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                    {isSubAdmin && (
+                      <div className="space-y-2">
+                        <Label htmlFor="department">Department</Label>
+                        <Input
+                          id="department"
+                          value={formData.department}
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
+                    )}
                     <div className="space-y-2">
                       <Label htmlFor="assignedUser">Assigned User</Label>
                       <Select
                         value={formData.assignedUser}
                         onValueChange={(value) => handleInputChange("assignedUser", value)}
-                        disabled={!formData.department}
+                        disabled={!formData.department || departmentUsers.length === 0}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select user" />
                         </SelectTrigger>
                         <SelectContent>
-                          {departmentUsers.map((user) => (
-                            <SelectItem key={user.id} value={user.name}>
-                              {user.name}
+                          {departmentUsers.length > 0 ? (
+                            departmentUsers.map((user) => (
+                              <SelectItem key={user.id} value={user.name}>
+                                {user.name}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <SelectItem value="" disabled>
+                              No users in this department
                             </SelectItem>
-                          ))}
+                          )}
                         </SelectContent>
                       </Select>
                     </div>

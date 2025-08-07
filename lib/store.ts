@@ -7,12 +7,13 @@ export interface User {
   email: string
   password: string
   role: "admin" | "sub-admin" | "user"
-  department?: string
+  department?: string // Changed to string to store department name
 }
 
 export interface Department {
   id: string
   name: string
+  description?: string // Added description field
   users: User[]
 }
 
@@ -65,15 +66,15 @@ interface AppState {
   addLogEntry: (ticketId: string, entry: Omit<LogEntry, "id" | "timestamp">) => void
 
   // Department actions
-  createDepartment: (name: string) => void
-  updateDepartment: (id: string, name: string) => void
+  createDepartment: (departmentData: { name: string; description: string }) => void
+  updateDepartment: (id: string, updates: { name?: string; description?: string }) => void
   deleteDepartment: (id: string) => void
 
   // User actions
   createUser: (user: Omit<User, "id">) => void
   updateUser: (id: string, updates: Partial<User>) => void
   deleteUser: (id: string) => void
-  assignUserToDepartment: (userId: string, departmentId: string) => void
+  assignUserToDepartment: (userId: string, departmentName: string) => void // Changed to departmentName
 
   // Reset function
   resetStore: () => void
@@ -118,16 +119,19 @@ const initialDepartments: Department[] = [
   {
     id: "1",
     name: "Technical Support",
+    description: "Handles all technical issues and support requests.",
     users: [],
   },
   {
     id: "2",
     name: "Customer Service",
+    description: "Manages customer inquiries, feedback, and general support.",
     users: [],
   },
   {
     id: "3",
     name: "Sales",
+    description: "Responsible for new client acquisition and sales operations.",
     users: [],
   },
 ]
@@ -300,10 +304,11 @@ export const useStore = create<AppState>()(
         }))
       },
 
-      createDepartment: (name) => {
+      createDepartment: (departmentData) => {
         const newDepartment: Department = {
           id: Date.now().toString(),
-          name,
+          name: departmentData.name,
+          description: departmentData.description,
           users: [],
         }
         set((state) => ({
@@ -311,9 +316,9 @@ export const useStore = create<AppState>()(
         }))
       },
 
-      updateDepartment: (id, name) => {
+      updateDepartment: (id, updates) => {
         set((state) => ({
-          departments: state.departments.map((dept) => (dept.id === id ? { ...dept, name } : dept)),
+          departments: state.departments.map((dept) => (dept.id === id ? { ...dept, ...updates } : dept)),
         }))
       },
 
@@ -345,9 +350,9 @@ export const useStore = create<AppState>()(
         }))
       },
 
-      assignUserToDepartment: (userId, departmentId) => {
+      assignUserToDepartment: (userId, departmentName) => { // Changed to departmentName
         set((state) => ({
-          users: state.users.map((user) => (user.id === userId ? { ...user, department: departmentId } : user)),
+          users: state.users.map((user) => (user.id === userId ? { ...user, department: departmentName } : user)),
         }))
       },
 

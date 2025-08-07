@@ -20,7 +20,7 @@ import { DashboardLayout } from "@/components/layout/dashboard-layout"
 export default function DepartmentUsersPage() {
   const params = useParams()
   const departmentId = params.id as string
-  const { users, departments, user, addUser, updateUser, deleteUser } = useStore()
+  const { users, departments, user, createUser, updateUser, deleteUser } = useStore()
   const { toast } = useToast()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -32,7 +32,7 @@ export default function DepartmentUsersPage() {
   })
 
   const department = departments.find(d => d.id === departmentId)
-  const departmentUsers = users.filter(u => u.departmentId === departmentId)
+  const departmentUsers = users.filter(u => u.department === department?.name) // Filter by department name
   const regularUsers = departmentUsers.filter(u => u.role === "user")
   const departmentLeader = departmentUsers.find(u => u.role === "sub-admin")
 
@@ -40,11 +40,11 @@ export default function DepartmentUsersPage() {
     e.preventDefault()
     if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) return
 
-    addUser({
+    createUser({
       name: formData.name,
       email: formData.email,
       role: "user",
-      departmentId: departmentId,
+      department: department?.name || "", // Store department name
       password: formData.password,
     })
 
@@ -75,6 +75,7 @@ export default function DepartmentUsersPage() {
       name: formData.name,
       email: formData.email,
       password: formData.password,
+      department: department?.name || "", // Ensure department name is updated
     })
 
     toast({
@@ -96,21 +97,25 @@ export default function DepartmentUsersPage() {
     })
   }
 
-  const canManageUsers = user?.role === "admin" || (user?.role === "sub-admin" && user.departmentId === departmentId)
+  const canManageUsers = user?.role === "admin" || (user?.role === "sub-admin" && user.department === department?.name)
 
   if (!department) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Department not found.</p>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">Department not found.</p>
+        </div>
+      </DashboardLayout>
     )
   }
 
   if (!canManageUsers) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">You don't have permission to manage users in this department.</p>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-muted-foreground">You don't have permission to manage users in this department.</p>
+        </div>
+      </DashboardLayout>
     )
   }
 
@@ -264,13 +269,16 @@ export default function DepartmentUsersPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDelete(member)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {/* Sub-admins cannot delete users */}
+                          {user?.role === "admin" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(member)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>

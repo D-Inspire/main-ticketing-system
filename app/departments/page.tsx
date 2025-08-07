@@ -17,7 +17,7 @@ import type { Department } from "@/lib/store"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 
 export default function DepartmentsPage() {
-  const { departments, users, user, addDepartment, updateDepartment, deleteDepartment } = useStore()
+  const { departments, users, user, createDepartment, updateDepartment, deleteDepartment } = useStore()
   const { toast } = useToast()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -31,7 +31,8 @@ export default function DepartmentsPage() {
     e.preventDefault()
     if (!formData.name.trim()) return
 
-    addDepartment({
+    // Corrected call to createDepartment
+    createDepartment({
       name: formData.name,
       description: formData.description,
     })
@@ -49,7 +50,7 @@ export default function DepartmentsPage() {
     setEditingDepartment(department)
     setFormData({
       name: department.name,
-      description: department.description,
+      description: department.description || "", // Ensure description is not undefined
     })
     setIsEditOpen(true)
   }
@@ -58,6 +59,7 @@ export default function DepartmentsPage() {
     e.preventDefault()
     if (!editingDepartment || !formData.name.trim()) return
 
+    // Corrected call to updateDepartment
     updateDepartment(editingDepartment.id, {
       name: formData.name,
       description: formData.description,
@@ -93,7 +95,7 @@ export default function DepartmentsPage() {
   const canManageDepartments = user?.role === "admin"
   const canViewDepartment = (department: Department) => {
     if (user?.role === "admin") return true
-    if (user?.role === "sub-admin") return user.departmentId === department.id
+    if (user?.role === "sub-admin") return user.department === department.id // Corrected from departmentId to department
     return false
   }
 
