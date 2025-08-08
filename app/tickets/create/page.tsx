@@ -165,11 +165,13 @@ export default function CreateTicketPage() {
                             <SelectValue placeholder="Select section" />
                           </SelectTrigger>
                           <SelectContent>
-                            {companySections.map((section) => (
-                              <SelectItem key={section} value={section}>
-                                {section}
-                              </SelectItem>
-                            ))}
+                            {companySections
+                              .filter(section => section !== "") // Filter out empty strings
+                              .map((section) => (
+                                <SelectItem key={section} value={section}>
+                                  {section}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -180,11 +182,13 @@ export default function CreateTicketPage() {
                             <SelectValue placeholder="Select source" />
                           </SelectTrigger>
                           <SelectContent>
-                            {sources.map((source) => (
-                              <SelectItem key={source} value={source}>
-                                {source}
-                              </SelectItem>
-                            ))}
+                            {sources
+                              .filter(source => source !== "") // Filter out empty strings
+                              .map((source) => (
+                                <SelectItem key={source} value={source}>
+                                  {source}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -253,11 +257,13 @@ export default function CreateTicketPage() {
                             <SelectValue placeholder="Select department" />
                           </SelectTrigger>
                           <SelectContent>
-                            {departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.name}>
-                                {dept.name}
-                              </SelectItem>
-                            ))}
+                            {departments
+                              .filter(dept => dept.name !== "") // Filter out empty strings
+                              .map((dept) => (
+                                <SelectItem key={dept.id} value={dept.name}>
+                                  {dept.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -284,17 +290,13 @@ export default function CreateTicketPage() {
                           <SelectValue placeholder="Select user" />
                         </SelectTrigger>
                         <SelectContent>
-                          {departmentUsers.length > 0 ? (
-                            departmentUsers.map((user) => (
+                          {departmentUsers
+                            .filter(user => user.name !== "") // Filter out empty strings
+                            .map((user) => (
                               <SelectItem key={user.id} value={user.name}>
                                 {user.name}
                               </SelectItem>
-                            ))
-                          ) : (
-                            <SelectItem value="" disabled>
-                              No users in this department
-                            </SelectItem>
-                          )}
+                            ))}
                         </SelectContent>
                       </Select>
                     </div>

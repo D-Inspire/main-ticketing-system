@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useStore } from "@/lib/store"
+import { useStore, Ticket } from "@/lib/store" // Import Ticket type
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -23,6 +23,10 @@ import { useToast } from "@/hooks/use-toast"
 import { motion } from "framer-motion"
 import { Plus, Search, Filter, Eye, Edit, Clock, User, CheckCircle, RotateCcw } from 'lucide-react'
 import Link from "next/link"
+import { TicketDetailsModal } from "@/components/ticket-details-modal" // Import the new modal component
+import { ScrollArea } from "@/components/ui/scroll-area" // Ensure ScrollArea is imported if used in modal
+import { Separator } from "@/components/ui/separator" // Ensure Separator is imported if used in modal
+
 
 export default function TicketsPage() {
   const { tickets, departments, users, user, updateTicket, addLogEntry } = useStore()
@@ -31,11 +35,12 @@ export default function TicketsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [departmentFilter, setDepartmentFilter] = useState("all")
   const [levelFilter, setLevelFilter] = useState("all")
-  const [selectedTicket, setSelectedTicket] = useState<any>(null)
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null) // Use Ticket type
   const [isResolveOpen, setIsResolveOpen] = useState(false)
   const [isUnresolveOpen, setIsUnresolveOpen] = useState(false)
   const [resolution, setResolution] = useState("")
   const [unresolveReason, setUnresolveReason] = useState("")
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false) // New state for details modal
 
   const filteredTickets = useMemo(() => {
     let ticketsToShow = tickets
@@ -151,16 +156,21 @@ export default function TicketsPage() {
     })
   }
 
-  const openResolveDialog = (ticket: any) => {
+  const openResolveDialog = (ticket: Ticket) => { // Use Ticket type
     setSelectedTicket(ticket)
     setResolution("")
     setIsResolveOpen(true)
   }
 
-  const openUnresolveDialog = (ticket: any) => {
+  const openUnresolveDialog = (ticket: Ticket) => { // Use Ticket type
     setSelectedTicket(ticket)
     setUnresolveReason("")
     setIsUnresolveOpen(true)
+  }
+
+  const openDetailsModal = (ticket: Ticket) => { // New function for details modal
+    setSelectedTicket(ticket)
+    setIsDetailsModalOpen(true)
   }
 
   return (
@@ -320,12 +330,11 @@ export default function TicketsPage() {
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Link href={`/tickets/${ticket.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 mr-2" />
-                            View
-                          </Button>
-                        </Link>
+                        {/* Changed Link to Button for modal trigger */}
+                        <Button variant="outline" size="sm" onClick={() => openDetailsModal(ticket)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
                         {(user?.role === "admin" || user?.role === "sub-admin") && (
                           <Link href={`/tickets/${ticket.id}/edit`}>
                             <Button variant="outline" size="sm">
@@ -442,6 +451,15 @@ export default function TicketsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Ticket Details Modal */}
+        <TicketDetailsModal
+          ticket={selectedTicket}
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+          users={users}
+          departments={departments}
+        />
       </div>
     </DashboardLayout>
   )

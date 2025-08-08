@@ -180,9 +180,7 @@ export default function MemberDashboard() {
             <p className="text-muted-foreground">Manage your assigned tickets</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-sm">
-              {user.department}
-            </Badge>
+            {/* Removed department badge */}
             <Badge variant="outline" className="text-sm">
               {user.role}
             </Badge>
