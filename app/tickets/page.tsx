@@ -24,12 +24,13 @@ import { motion } from "framer-motion"
 import { Plus, Search, Filter, Eye, Edit, Clock, User, CheckCircle, RotateCcw } from 'lucide-react'
 import Link from "next/link"
 import { TicketDetailsModal } from "@/components/ticket-details-modal" // Import the new modal component
+import { TicketEditModal } from "@/components/ticket-edit-modal" // Import the new edit modal component
 import { ScrollArea } from "@/components/ui/scroll-area" // Ensure ScrollArea is imported if used in modal
 import { Separator } from "@/components/ui/separator" // Ensure Separator is imported if used in modal
 
 
 export default function TicketsPage() {
-  const { tickets, departments, users, user, updateTicket, addLogEntry } = useStore()
+  const { tickets, departments, users, user, updateTicket, addLogEntry, companySections, sources } = useStore()
   const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -41,6 +42,7 @@ export default function TicketsPage() {
   const [resolution, setResolution] = useState("")
   const [unresolveReason, setUnresolveReason] = useState("")
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false) // New state for details modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false) // New state for edit modal
 
   const filteredTickets = useMemo(() => {
     let ticketsToShow = tickets
@@ -171,6 +173,15 @@ export default function TicketsPage() {
   const openDetailsModal = (ticket: Ticket) => { // New function for details modal
     setSelectedTicket(ticket)
     setIsDetailsModalOpen(true)
+  }
+
+  const openEditModal = (ticket: Ticket) => { // New function for edit modal
+    setSelectedTicket(ticket)
+    setIsEditModalOpen(true)
+  }
+
+  const handleUpdateTicket = (ticketId: string, updates: Partial<Ticket>) => {
+    updateTicket(ticketId, updates)
   }
 
   return (
@@ -330,18 +341,15 @@ export default function TicketsPage() {
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        {/* Changed Link to Button for modal trigger */}
                         <Button variant="outline" size="sm" onClick={() => openDetailsModal(ticket)}>
                           <Eye className="w-4 h-4 mr-2" />
                           View
                         </Button>
                         {(user?.role === "admin" || user?.role === "sub-admin") && (
-                          <Link href={`/tickets/${ticket.id}/edit`}>
-                            <Button variant="outline" size="sm">
-                              <Edit className="w-4 h-4 mr-2" />
-                              Edit
-                            </Button>
-                          </Link>
+                          <Button variant="outline" size="sm" onClick={() => openEditModal(ticket)}>
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
                         )}
                         {ticket.status !== "completed" ? (
                           <Button
@@ -459,6 +467,19 @@ export default function TicketsPage() {
           onClose={() => setIsDetailsModalOpen(false)}
           users={users}
           departments={departments}
+        />
+
+        {/* Ticket Edit Modal */}
+        <TicketEditModal
+          ticket={selectedTicket}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSave={handleUpdateTicket}
+          users={users}
+          departments={departments}
+          companySections={companySections}
+          sources={sources}
+          currentUserRole={user?.role}
         />
       </div>
     </DashboardLayout>
