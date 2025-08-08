@@ -64,10 +64,10 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center">
           <div className="mx-auto w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mb-4">
-            <Ticket className="w-8 h-8 text-white" />
+            <h1 className="text-primary font-extrabold text-4xl text-shadow-[1px_1px_white,-1px_-1px_white]">N</h1>
           </div>
-          <h1 className="text-3xl font-bold text-primary">Ticketing System</h1>
-          <p className="text-muted-foreground">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-primary">NanoTicket</h1>
+          <p className="text-muted-foreground">System</p>
         </div>
 
         {/* Login Form */}

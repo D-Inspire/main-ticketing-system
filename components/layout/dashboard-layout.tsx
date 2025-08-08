@@ -34,7 +34,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       : []),
     ...(user?.role === "sub-admin"
       ? [
-          { name: "Departments", href: "/departments", icon: Building2 },
           { name: "Users", href: "/users", icon: Users },
         ]
       : []),
@@ -50,12 +49,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={cn("flex flex-col h-full", mobile ? "w-full" : "w-80")}>
+    <div className={cn("flex flex-col h-full", mobile ? "w-full bg-white" : "w-80")}>
       {/* Logo */}
       <div className="p-6 border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-            <Ticket className="w-6 h-6 text-white" />
+            <h1 className="text-primary font-extrabold text-2xl text-shadow-[1px_1px_white,-1px_-1px_white]">N</h1>
           </div>
           <div>
             <h2 className="font-bold text-primary">NanoTicket</h2>
@@ -138,7 +137,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex items-center justify-between p-4 border-b bg-card">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Ticket className="w-4 h-4 text-white" />
+              <h1 className="text-primary font-extrabold text-lg text-shadow-[1px_1px_white,-1px_-1px_white]">N</h1>
             </div>
             <h1 className="font-bold text-primary">Ticketing System</h1>
           </div>
