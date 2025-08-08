@@ -60,7 +60,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, users, departments
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] h-[90vh] flex flex-col bg-background">
+      <DialogContent className="sm:max-w-[800px] h-[90vh] flex flex-col bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">{ticket.subject}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
